@@ -1,0 +1,8 @@
+server:
+  port: 8081
+
+resilience4j.timelimiter:
+  instances:
+    backendTest:
+      timeoutDuration: 2s
+      cancelRunningFuture: true
