@@ -1,2 +1,5 @@
 server:
   port: 8080
+
+circuit-breaker:
+  timeout-seconds: 2
