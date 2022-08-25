@@ -15,27 +15,27 @@ import java.util.concurrent.CompletableFuture
 class WebTimeoutApplication
 
 fun main(args: Array<String>) {
-	runApplication<WebTimeoutApplication>(*args)
+    runApplication<WebTimeoutApplication>(*args)
 }
 
 @RestController
 class WebTimeoutController {
-	@TimeLimiter(name = "backendTest", fallbackMethod = "fallback")
-	@Bulkhead(name="slowRequest", type=Bulkhead.Type.THREADPOOL)
-	@GetMapping
-	fun get(
-		@RequestParam(name = "delay", required = false, defaultValue = "0") delay: Long
-	): CompletableFuture<ResponseEntity<String>> {
-		Thread.sleep(delay)
-		return CompletableFuture.completedFuture(ResponseEntity
-			.ok("0"))
-	}
+    @TimeLimiter(name = "backendTest", fallbackMethod = "fallback")
+    @Bulkhead(name="slowRequest", type=Bulkhead.Type.THREADPOOL)
+    @GetMapping
+    fun get(
+        @RequestParam(name = "delay", required = false, defaultValue = "0") delay: Long
+    ): CompletableFuture<ResponseEntity<String>> {
+        Thread.sleep(delay)
+        return CompletableFuture.completedFuture(ResponseEntity
+            .ok("0"))
+    }
 
-	fun fallback(e: Throwable): CompletableFuture<ResponseEntity<String>> {
-		e.printStackTrace()
+    fun fallback(e: Throwable): CompletableFuture<ResponseEntity<String>> {
+        e.printStackTrace()
 
-		return CompletableFuture.completedFuture(ResponseEntity
-			.status(HttpStatus.SERVICE_UNAVAILABLE)
-			.body("1"))
-	}
+        return CompletableFuture.completedFuture(ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body("1"))
+    }
 }

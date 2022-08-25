@@ -27,65 +27,65 @@ import java.time.Duration
 class WebTimeoutApplication
 
 fun main(args: Array<String>) {
-	runApplication<WebTimeoutApplication>(*args)
+    runApplication<WebTimeoutApplication>(*args)
 }
 
 @ConfigurationProperties(prefix = "circuit-breaker")
 class CircuitBreakerConfigurationProperties(
-	var timeoutSeconds: Long = 2
+    var timeoutSeconds: Long = 2
 )
 
 @Configuration
 @EnableConfigurationProperties(CircuitBreakerConfigurationProperties::class)
 class CircuitBreakerConfig(
-	private val props: CircuitBreakerConfigurationProperties
+    private val props: CircuitBreakerConfigurationProperties
 ) {
-	@Bean
-	fun defaultCustomizer(): Customizer<Resilience4JCircuitBreakerFactory> {
-		return Customizer<Resilience4JCircuitBreakerFactory> { factory ->
-			factory.configureDefault { id ->
-				Resilience4JConfigBuilder(id)
-					.timeLimiterConfig(TimeLimiterConfig.custom()
-						.timeoutDuration(Duration.ofSeconds(props.timeoutSeconds)).build())
-					.circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
-					.build()
-			}
-		}
-	}
+    @Bean
+    fun defaultCustomizer(): Customizer<Resilience4JCircuitBreakerFactory> {
+        return Customizer<Resilience4JCircuitBreakerFactory> { factory ->
+            factory.configureDefault { id ->
+                Resilience4JConfigBuilder(id)
+                    .timeLimiterConfig(TimeLimiterConfig.custom()
+                        .timeoutDuration(Duration.ofSeconds(props.timeoutSeconds)).build())
+                    .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
+                    .build()
+            }
+        }
+    }
 }
 
 @Aspect
 @Component
 class WebTimeoutControllerCircuitBreaker(
-	private val circuitBreakerFactory: CircuitBreakerFactory<*, *>
+    private val circuitBreakerFactory: CircuitBreakerFactory<*, *>
 ) {
-	@Around("execution(* com.yo1000.webtimeout.WebTimeoutController+.*(..))")
-	fun aroundController(joinPoint: ProceedingJoinPoint): Any? {
-		return circuitBreakerFactory.create("slowRequest")
-			.run({
-				joinPoint.proceed()
-			}, {
-				throwable -> fallback(throwable)
-			})
-	}
+    @Around("execution(* com.yo1000.webtimeout.WebTimeoutController+.*(..))")
+    fun aroundController(joinPoint: ProceedingJoinPoint): Any? {
+        return circuitBreakerFactory.create("slowRequest")
+            .run({
+                joinPoint.proceed()
+            }, {
+                throwable -> fallback(throwable)
+            })
+    }
 
-	fun fallback(e: Throwable): ResponseEntity<String> {
-		e.printStackTrace()
+    fun fallback(e: Throwable): ResponseEntity<String> {
+        e.printStackTrace()
 
-		return ResponseEntity
-			.status(HttpStatus.SERVICE_UNAVAILABLE)
-			.body("1")
-	}
+        return ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body("1")
+    }
 }
 
 @RestController
 class WebTimeoutController {
-	@GetMapping
-	fun get(
-		@RequestParam(name = "delay", required = false, defaultValue = "0") delay: Long
-	): ResponseEntity<String> {
-		Thread.sleep(delay)
-		return ResponseEntity
-			.ok("0")
-	}
+    @GetMapping
+    fun get(
+        @RequestParam(name = "delay", required = false, defaultValue = "0") delay: Long
+    ): ResponseEntity<String> {
+        Thread.sleep(delay)
+        return ResponseEntity
+            .ok("0")
+    }
 }
